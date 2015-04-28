@@ -17,13 +17,13 @@ if (!defined("WHMCS"))
 
 function cleantalk_config() {
     $configarray = array(
-    "name" => "CleanTalk anti-spam reseller addon",
+    "name" => "CleanTalk anti-spam addon",
     "description" => 'Protect your website against spam bots. Anti-spam for comments, registrations, orders, bookings and contacts. <a href="http://cleantalk.org/publicoffer">License agreement</a>.',
     "version" => "1.0",
     "author" => "CleanTalk",
     "language" => "english",
     "fields" => array(
-        "partner_api_key" => array ("FriendlyName" => "API key", "Type" => "text", "Size" => "12", "Description" => "API key", "Default" => "" ),
+        "partner_api_key" => array ("FriendlyName" => "Hoster API key", "Type" => "text", "Size" => "32", "Description" => "API key<br /><a href='https://cleantalk.org/my/?cp_mode=hosting-antispam' target='_blank'>Hoster Dashboard</a>", "Default" => "" ),
     ));
     return $configarray;
 }

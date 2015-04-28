@@ -122,6 +122,7 @@ function cleantalk_hook_order($vars)
 				$data['website'] = $_SERVER['HTTP_HOST'];
 				$data['platform'] = 'whmcs';
 				$data['partner_api_key'] = $cfg['value'];
+				$data['locale'] = 'en-US';
 				$auth=send_request($url,$data,false);
 				if($auth!==null)
 				{
