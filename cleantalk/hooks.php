@@ -115,32 +115,42 @@ function cleantalk_hook_order($vars)
 				$cfg=full_query("SELECT value from tbladdonmodules where module='cleantalk' and setting='partner_api_key'");
 				$cfg=mysql_fetch_array($cfg);
 				
-				$url = 'https://api.cleantalk.org';
-				$data = array();
-				$data['method_name'] = 'get_api_key'; 
-				$data['email'] = $email;
-				$data['website'] = $_SERVER['HTTP_HOST'];
-				$data['platform'] = 'whmcs';
-				$data['partner_api_key'] = $cfg['value'];
-				$data['locale'] = 'en-US';
-				$auth=send_request($url,$data,false);
-				if($auth!==null)
+				if(@trim($cfg['value'])!='')
 				{
-					$auth=json_decode($auth);
-					if(isset($auth->data)&&isset($auth->data->auth_key))
+					$url = 'https://api.cleantalk.org';
+					$data = array();
+					$data['method_name'] = 'get_api_key'; 
+					$data['email'] = $email;
+					$data['website'] = $domain;
+					$data['platform'] = 'whmcs';
+					$data['partner_api_key'] = $cfg['value'];
+					$data['locale'] = 'en-US';
+					$auth=send_request($url,$data,false);
+					if($auth!==null)
 					{
-						$command = "logactivity";
-						$adminuser = "admin";
-						$values["description"] = "CleanTalk account $email succesfully created";						
-						$results = localAPI($command,$values,$adminuser);
+						$auth=json_decode($auth);
+						if(isset($auth->data)&&isset($auth->data->auth_key))
+						{
+							$command = "logactivity";
+							$adminuser = "admin";
+							$values["description"] = "CleanTalk account $email succesfully created";						
+							$results = localAPI($command,$values,$adminuser);
+						}
+						else if(isset($auth->error_no))
+						{
+							$command = "logactivity";
+							$adminuser = "admin";
+							$values["description"] = "Failed to create CleanTalk account: ".$auth->error_message;						
+							$results = localAPI($command,$values,$adminuser);
+						}
 					}
-					else if(isset($auth->error_no))
-					{
-						$command = "logactivity";
-						$adminuser = "admin";
-						$values["description"] = "Failed to create CleanTalk account: ".$auth->error_message;						
-						$results = localAPI($command,$values,$adminuser);
-					}
+				}
+				else
+				{
+					$command = "logactivity";
+					$adminuser = "admin";
+					$values["description"] = "Failed to create CleanTalk account: please enter Hoster API key";						
+					$results = localAPI($command,$values,$adminuser);
 				}
 			}
 		}
@@ -153,3 +163,4 @@ function cleantalk_hook_order($vars)
 }
 
 add_hook('ShoppingCartCheckoutCompletePage', 1, 'cleantalk_hook_order');
+add_hook('AcceptOrder', 1, 'cleantalk_hook_order');

@@ -33,9 +33,9 @@ function cleantalk_activate() {
 	$ct_plans_query = full_query("SELECT * from tbladdons where lower(name) like '%leantalk%'");
 	if (mysql_num_rows($ct_plans_query) == 0){
 		$addon_type=array(
-            "name" => 'Anti-spam protection by CleanTalk',
-            "description" => 'Protect your website against spam bots. Anti-spam for comments, registrations, orders, bookings and contacts. <a href="http://cleantalk.org/publicoffer">License agreement</a>.',
-            "billingcycle" => "Annually",
+            "name" => 'CleanTalk free',
+            "description" => 'Protect your website against spam bots.',
+            "billingcycle" => "Free",
             "showorder" => "on",
             "welcomeemail" => 0,
             "weight" => 1,
