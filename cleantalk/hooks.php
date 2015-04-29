@@ -82,7 +82,7 @@ function cleantalk_hook_order($vars)
 	$values["id"] = $vars['orderid'];
 	$values["responsetype"] = "json";
 	$result = localAPI($command,$values);
-	//addlog(print_r($result,true));
+	//addlog("result:\n".print_r($result,true)."\n\n");
 	
 	if($result['result']=='success')
 	{
@@ -96,7 +96,7 @@ function cleantalk_hook_order($vars)
 			{
 				$domain=$items[$i]['domain'];
 			}
-			if($items[$i]['type']=='addon'&&@strpos($items[$i]['product'],'CleanTalk')!==false&&$items[$i]['status']=='Active')
+			if($items[$i]['type']=='addon'&&@strpos($items[$i]['product'],'CleanTalk')!==false)//&&$items[$i]['status']=='Active'
 			{
 				$is_cleantalk=true;
 			}
@@ -108,6 +108,7 @@ function cleantalk_hook_order($vars)
 			$values["stats"] = true;
 			$values["responsetype"] = "json";
 			$uresult = localAPI($command,$values);
+			//addlog("uresult:\n".print_r($uresult,true)."\n\n");
 			if($uresult['result']=='success')
 			{
 				$email=$uresult['client']['email'];
@@ -123,7 +124,7 @@ function cleantalk_hook_order($vars)
 					$data['email'] = $email;
 					$data['website'] = $domain;
 					$data['platform'] = 'whmcs';
-					$data['partner_api_key'] = $cfg['value'];
+					$data['hoster_api_key'] = $cfg['value'];
 					$data['locale'] = 'en-US';
 					$auth=send_request($url,$data,false);
 					if($auth!==null)
