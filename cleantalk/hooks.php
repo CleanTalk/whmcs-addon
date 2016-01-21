@@ -17,16 +17,6 @@ if (!defined("WHMCS"))
 require_once(dirname(__FILE__)."/JSON.php");
 require_once(dirname(__FILE__)."/cleantalk.class.php");
     
-if(!function_exists('addlog'))    
-{
-	function addlog($s)
-	{
-		$f=fopen(dirname(__FILE__)."/log.txt","a");
-		fwrite($f,$s."\n");
-		fclose($f);
-	}
-}
-
 function send_request($url,$data,$isJSON)
 {
 	$result=null;
@@ -163,5 +153,72 @@ function cleantalk_hook_order($vars)
 	}
 }
 
+function cleantalk_hook_invoice_paid($invoiceid)
+{
+	$command = "getinvoice";
+
+	$values=Array();
+	$values["responsetype"] = "json";
+	$values["invoiceid"] = $invoiceid;
+	
+	$invoice_results = localAPI($command,$values);
+	
+	$userid=$invoice_results['userid'];
+	
+	$values=Array();
+	$command = "getclientsdetails";
+	$values["clientid"] = $userid;
+	$values["stats"] = true;
+	$values["responsetype"] = "json";
+	$uresult = localAPI($command,$values);
+
+	$email=$uresult['client']['email'];
+	
+	
+	$url = 'https://api.cleantalk.org';
+	$data = array();
+	$data['method_name'] = 'extend_license'; 
+	$data['email'] = $email;
+	$data['platform'] = 'whmcs';
+	
+	if($invoice_results['recurcycle'] == 'Months')
+	{
+		$data['billing_cycle'] = 'months';
+	}
+	else if($invoice_results['recurcycle'] == 'Years')
+	{
+		$data['billing_cycle'] = 'years';
+	}
+	
+	$data['period'] = $invoice_results['recurfor'];
+	
+	$cfg=full_query("SELECT value from tbladdonmodules where module='cleantalk' and setting='partner_api_key'");
+	$cfg=mysql_fetch_array($cfg);
+
+	$data['hoster_api_key'] = $cfg['value'];
+
+	$auth=send_request($url,$data,false);
+	if($auth!==null)
+	{
+		$auth=json_decode($auth);
+		if(isset($auth->data)&&isset($auth->data->extended))
+		{
+			$command = "logactivity";
+			$adminuser = "admin";
+			$values["description"] = "CleanTalk account $email succesfully extended till ".$auth->data->extended;						
+			$results = localAPI($command,$values,$adminuser);
+		}
+		else if(isset($auth->error_no))
+		{
+			$command = "logactivity";
+			$adminuser = "admin";
+			$values["description"] = "Failed to extend CleanTalk account: ".$auth->error_message;						
+			$results = localAPI($command,$values,$adminuser);
+		}
+	}
+	
+}
+
 add_hook('ShoppingCartCheckoutCompletePage', 1, 'cleantalk_hook_order');
 add_hook('AcceptOrder', 1, 'cleantalk_hook_order');
+add_hook('InvoicePaid', 1, 'cleantalk_hook_invoice_paid');
