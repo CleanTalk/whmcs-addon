@@ -88,12 +88,3 @@ function cleantalk_sidebar($vars) {
     </ul>';
     return $sidebar;
 }
-if(!function_exists('addlog'))    
-{
-	function addlog($s)
-	{
-		$f=fopen("F:/denwer_new/home/whmcs.example.com/www/modules/addons/cleantalk/log.txt","a");
-		fwrite($f,$s."\n");
-		fclose($f);
-	}
-}
