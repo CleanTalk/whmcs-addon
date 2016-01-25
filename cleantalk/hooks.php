@@ -16,6 +16,18 @@ if (!defined("WHMCS"))
    
 require_once(dirname(__FILE__)."/JSON.php");
 require_once(dirname(__FILE__)."/cleantalk.class.php");
+define("CLEANTALK_LOG", false);
+
+function cleantalk_addlog($message)
+{
+	if(CLEANTALK_LOG)
+	{
+		$command = "logactivity";
+		$adminuser = "admin";
+		$values["description"] = $message;						
+		$results = localAPI($command,$values,$adminuser);
+	}
+}
     
 function send_request($url,$data,$isJSON)
 {
@@ -65,17 +77,18 @@ function send_request($url,$data,$isJSON)
 
 function cleantalk_hook_order($vars)
 {
-	//addlog("activate!");
+	cleantalk_addlog("Hooked order activation");
 	
 	$command = "getorders";
 	$values=Array();
 	$values["id"] = $vars['orderid'];
 	$values["responsetype"] = "json";
 	$result = localAPI($command,$values);
-	//addlog("result:\n".print_r($result,true)."\n\n");
+	cleantalk_addlog("Called GetOrders");
 	
 	if($result['result']=='success')
 	{
+		cleantalk_addlog("API call success");
 		$userid=$result['orders']['order'][0]['userid'];
 		$items=$result['orders']['order'][0]['lineitems']['lineitem'];
 		$is_cleantalk=false;
@@ -91,7 +104,25 @@ function cleantalk_hook_order($vars)
 				$is_cleantalk=true;
 			}
 		}
-		if($domain!=''&&$is_cleantalk)
+		if($is_cleantalk)
+		{
+			cleantalk_addlog("CleanTalk added to order");
+		}
+		else
+		{
+			cleantalk_addlog("CleanTalk not added to order");
+		}
+		if($domain=='')
+		{
+			cleantalk_addlog("Domain not added!");
+		}
+		else
+		{
+			cleantalk_addlog("Domain added!");
+		}
+		
+		//if($domain!=''&&$is_cleantalk)
+		if($is_cleantalk)
 		{
 			$command = "getclientsdetails";
 			$values["clientid"] = $userid;
@@ -99,9 +130,12 @@ function cleantalk_hook_order($vars)
 			$values["responsetype"] = "json";
 			$uresult = localAPI($command,$values);
 			//addlog("uresult:\n".print_r($uresult,true)."\n\n");
+			cleantalk_addlog("Called GetClientsDetails");
 			if($uresult['result']=='success')
 			{
+				cleantalk_addlog("API call success");
 				$email=$uresult['client']['email'];
+				cleantalk_addlog("User email: ".$email);
 				
 				$cfg=full_query("SELECT value from tbladdonmodules where module='cleantalk' and setting='partner_api_key'");
 				$cfg=mysql_fetch_array($cfg);
@@ -117,6 +151,7 @@ function cleantalk_hook_order($vars)
 					$data['hoster_api_key'] = $cfg['value'];
 					$data['locale'] = 'en-US';
 					$auth=send_request($url,$data,false);
+					cleantalk_addlog("Sending request to CleanTalk servers");
 					if($auth!==null)
 					{
 						$auth=json_decode($auth);
