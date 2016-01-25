@@ -19,7 +19,7 @@ function cleantalk_config() {
     $configarray = array(
     "name" => "CleanTalk anti-spam addon",
     "description" => 'Protect your website against spam bots. Anti-spam for comments, registrations, orders, bookings and contacts. <a href="http://cleantalk.org/publicoffer">License agreement</a>.',
-    "version" => "1.0",
+    "version" => "1.1",
     "author" => "CleanTalk",
     "language" => "english",
     "fields" => array(
